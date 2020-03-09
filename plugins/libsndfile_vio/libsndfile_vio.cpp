@@ -27,20 +27,25 @@ MyPlugin::MyPlugin() : Plugin(0, 0, 0)
     vio.write = vfwrite;
     vio.tell = vftell;
     // fill virtual file system
-    vio_data.data = (unsigned char *)audio::sineData;
-    vio_data.length = audio::sineDataSize;
+    size_t length = 0;
+    vio_data.data = getSample(length);
+    vio_data.length = length;
     vio_data.offset = 0;
     // load sample with sndfile
     file = SndfileHandle(vio, &vio_data);
-    if (file)
+    if (!file.error())
     {
         const sf_count_t lenght = file.frames() * file.channels();
+        std::vector<float> sample;
         sample.resize(lenght);
-        file.read(&sample.at(0), file.frames());
+        file.read(&sample.at(0), file.frames()); 
+        osc.setSampleData(sample);
+        osc.setChannels(file.channels()); 
+        osc.setLength(file.frames()); 
     }
     else
     {
-        printf("load error\n");
+        printf("libsndfile error %i\n",file.error());
     }
 }
 
@@ -56,17 +61,11 @@ void MyPlugin::setParameterValue(uint32_t, float)
 {
    // no parameters 
 }
-void MyPlugin::run(const float **inputs, float **outputs, uint32_t frames,
+void MyPlugin::run(const float **, float **outputs, uint32_t frames,
                    const MidiEvent *midiEvents, uint32_t midiEventCount)
 
 {
-    for (uint32_t i = 0; i < frames; i++)
-    {
-        outputs[0][i] = sample.at(phase);
-        phase++;
-        if (phase >= sample.size())
-            phase = 0;
-    }
+  osc.getSamples(outputs,frames);
 }
 //-----------------------------------------------------------------------------
 sf_count_t MyPlugin::vfget_filelen(void *user_data)

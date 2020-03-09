@@ -13,7 +13,7 @@ NAME = libsndfile_vio
 
 FILES_DSP = \
 	libsndfile_vio.cpp \
-	audio.cpp
+	Oscillator.cpp
 
 # --------------------------------------------------------------
 # Do some magic
