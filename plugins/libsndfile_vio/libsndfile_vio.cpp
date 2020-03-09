@@ -35,13 +35,14 @@ MyPlugin::MyPlugin() : Plugin(0, 0, 0)
     file = SndfileHandle(vio, &vio_data);
     if (!file.error())
     {
-        const sf_count_t lenght = file.frames() * file.channels();
+        const sf_count_t length = file.frames() * file.channels();
         std::vector<float> sample;
-        sample.resize(lenght);
-        file.read(&sample.at(0), file.frames()); 
+        sample.resize(length);
+        file.read(&sample.at(0), file.frames()*file.channels()); 
         osc.setSampleData(sample);
         osc.setChannels(file.channels()); 
-        osc.setLength(file.frames()); 
+        osc.setLength(file.frames());
+       // printf("length : %ul\n", length);
     }
     else
     {

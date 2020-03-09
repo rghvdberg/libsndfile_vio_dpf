@@ -3,6 +3,7 @@
 
 Oscillator::Oscillator()
 {
+    phase =0;
     // default ctor
 }
 
@@ -70,7 +71,7 @@ void Oscillator::getSamples(float **buffer, size_t frames)
 
         if (phase >= length)
             phase = phase - length;
-        //printf("phase = %lu\n", phase);
+        printf("phase = %lu\n", phase);
 
         frames_left -= block;
     }
