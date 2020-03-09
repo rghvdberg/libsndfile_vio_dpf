@@ -18,9 +18,10 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #define LIBSNDFILE_VIO_HPP
 
 #include "DistrhoPlugin.hpp"
-#include "audio.hpp"
 #include <sndfile.hh>
 #include <vector>
+#include "Samples.hpp"
+#include "Oscillator.hpp"
 
 START_NAMESPACE_DISTRHO
 
@@ -89,13 +90,9 @@ private:
         unsigned char *data;
     };
     VIO_DATA vio_data;
-
     SndfileHandle file;
-
-    // sample data
-    std::vector<float>sample;
-    uint phase;
-
+    Oscillator osc;
+   
     DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MyPlugin)
 };
 
