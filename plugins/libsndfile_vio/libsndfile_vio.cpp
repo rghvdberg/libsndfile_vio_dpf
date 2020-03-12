@@ -38,15 +38,16 @@ MyPlugin::MyPlugin() : Plugin(0, 0, 0)
         const sf_count_t length = file.frames() * file.channels();
         std::vector<float> sample;
         sample.resize(length);
-        file.read(&sample.at(0), file.frames()*file.channels()); 
+        file.read(&sample.at(0), file.frames() * file.channels());
         osc.setSampleData(sample);
-        osc.setChannels(file.channels()); 
+        osc.setChannels(file.channels());
         osc.setLength(file.frames());
-       // printf("length : %ul\n", length);
+        osc.playing = false;
+        // printf("length : %ul\n", length);
     }
     else
     {
-        printf("libsndfile error %i\n",file.error());
+        printf("libsndfile error %i\n", file.error());
     }
 }
 
@@ -60,13 +61,67 @@ float MyPlugin::getParameterValue(uint32_t) const
 }
 void MyPlugin::setParameterValue(uint32_t, float)
 {
-   // no parameters 
+    // no parameters
 }
 void MyPlugin::run(const float **, float **outputs, uint32_t frames,
                    const MidiEvent *midiEvents, uint32_t midiEventCount)
-
 {
-  osc.getSamples(outputs,frames);
+    uint32_t framesDone = 0;
+    uint32_t curEventIndex = 0;
+    size_t frame_in = 0;
+    size_t frame_out = frames;
+    // reset output buffer
+    std::memset(outputs[0], 0, sizeof(float) * frames);
+    std::memset(outputs[1], 0, sizeof(float) * frames);
+
+    while (framesDone < frames)
+    {
+        while (curEventIndex < midiEventCount && (framesDone == midiEvents[curEventIndex].frame))
+        {
+            int message = midiEvents[curEventIndex].data[0] & 0xF0;
+            int velocity = midiEvents[curEventIndex].data[2];
+            switch (message)
+            {
+            case 0x80: // note off
+                frame_out = midiEvents[curEventIndex].frame;
+                if (frame_out > frame_in && osc.playing)
+                {
+                    const size_t offset = frame_in;
+                    const size_t block = frame_out - frame_in;
+                    osc.getSamples(outputs, offset, block);
+                    osc.playing = false;
+                }
+                break;
+
+            case 0x90:             // note on
+                if (velocity == 0) // treat as note off
+                {
+                    frame_out = midiEvents[curEventIndex].frame;
+                    if (frame_out > frame_in && osc.playing)
+                    {
+                        const size_t offset = frame_in;
+                        const size_t block = frame_out - frame_in;
+                        osc.getSamples(outputs, offset, block);
+                        osc.playing = false;
+                    }
+                    break;
+                }
+                frame_in = midiEvents[curEventIndex].frame;
+                osc.phase = 0;
+                osc.playing = true;
+                break;
+            }
+            curEventIndex++;
+        }
+        ++framesDone;
+    }
+
+    if ((frame_out > frame_in) && osc.playing)
+    {
+        const size_t offset = frame_in;
+        const size_t block = frame_out - frame_in;
+        osc.getSamples(outputs, offset, block);
+    }
 }
 //-----------------------------------------------------------------------------
 sf_count_t MyPlugin::vfget_filelen(void *user_data)

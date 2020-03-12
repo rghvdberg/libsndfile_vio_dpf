@@ -3,7 +3,7 @@
 
 Oscillator::Oscillator()
 {
-    phase =0;
+    phase = 0;
     // default ctor
 }
 
@@ -45,7 +45,7 @@ size_t Oscillator::getPhase() const
     return phase;
 }
 
-void Oscillator::getSamples(float **buffer, size_t frames)
+void Oscillator::getSamples(float **buffer, size_t offset, size_t frames)
 {
     size_t frames_left = frames;
     while (frames_left)
@@ -58,21 +58,17 @@ void Oscillator::getSamples(float **buffer, size_t frames)
             phase = 0;
         }
         size_t block = end - start;
-        for (int i = 0; i < block; i++)
+        for (size_t i = 0; i < block; i++)
         {
             const size_t left = (start + i) * channels;
-            const size_t right = (start + i) * channels +1;
-            buffer[0][i] = sampleData.at(left);
-            buffer[1][i] = sampleData.at(right);
+            const size_t right = (start + i) * channels + 1;
+            buffer[0][i + offset] = sampleData.at(left);
+            buffer[1][i + offset] = sampleData.at(right);
         }
-
-        //  memcpy(buffer, &sampleData.at(start), block);
         phase += block;
 
         if (phase >= length)
             phase = phase - length;
-        printf("phase = %lu\n", phase);
-
         frames_left -= block;
     }
 }

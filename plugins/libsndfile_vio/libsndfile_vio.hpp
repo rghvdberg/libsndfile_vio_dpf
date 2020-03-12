@@ -83,6 +83,7 @@ private:
     static sf_count_t vfread(void *ptr, sf_count_t count, void *user_data);
     static sf_count_t vfwrite(const void *ptr, sf_count_t count, void *user_data);
     static sf_count_t vftell(void *user_data);
+
     // struct holding data for virtual file system
     struct VIO_DATA
     {
@@ -91,7 +92,10 @@ private:
     };
     VIO_DATA vio_data;
     SndfileHandle file;
+    //
     Oscillator osc;
+
+    
    
     DISTRHO_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MyPlugin)
 };
